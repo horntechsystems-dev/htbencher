@@ -1,0 +1,78 @@
+{
+    "actions": [],
+    "creation": "2024-05-22 10:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "server_name",
+        "hostname",
+        "username",
+        "password",
+        "ssh_private_key",
+        "ssh_key_path"
+    ],
+    "fields": [
+        {
+            "fieldname": "server_name",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Server Name",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "hostname",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Hostname (IP/Domain)",
+            "reqd": 1
+        },
+        {
+            "fieldname": "username",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "SSH Username",
+            "reqd": 1
+        },
+        {
+            "fieldname": "password",
+            "fieldtype": "Password",
+            "label": "SSH/Sudo Password"
+        },
+        {
+            "fieldname": "ssh_private_key",
+            "fieldtype": "Small Text",
+            "label": "SSH Private Key"
+        },
+        {
+            "fieldname": "ssh_key_path",
+            "fieldtype": "Data",
+            "label": "SSH Key Path",
+            "read_only": 1
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2024-05-22 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Htbencher",
+    "name": "HT Server",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}

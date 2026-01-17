@@ -1,0 +1,86 @@
+{
+    "actions": [],
+    "creation": "2024-05-22 10:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "app_name",
+        "repo_url",
+        "branch",
+        "description",
+        "is_private",
+        "ssh_private_key"
+    ],
+    "fields": [
+        {
+            "fieldname": "app_name",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "App Name",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "repo_url",
+            "fieldtype": "Data",
+            "label": "Repository URL",
+            "reqd": 1
+        },
+        {
+            "default": "main",
+            "fieldname": "branch",
+            "fieldtype": "Data",
+            "label": "Branch"
+        },
+        {
+            "fieldname": "description",
+            "fieldtype": "Small Text",
+            "label": "Description"
+        },
+        {
+            "fieldname": "is_private",
+            "fieldtype": "Check",
+            "label": "Is Private Repository",
+            "description": "Check this if the repository is private. Make sure to use SSH URL format: git@github.com:username/repo.git",
+            "default": "0"
+        },
+        {
+            "fieldname": "ssh_private_key",
+            "fieldtype": "Small Text",
+            "label": "SSH Private Key",
+            "description": "Paste your SSH private key here for authentication with private repositories",
+            "depends_on": "is_private"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2024-05-22 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Htbencher",
+    "name": "HT App",
+    "custom": 0,
+    "beta": 0,
+    "is_submittable": 0,
+    "istable": 0,
+    "issingle": 0,
+    "naming_rule": "By fieldname",
+    "autoname": "field:app_name",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}

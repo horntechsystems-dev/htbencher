@@ -1,0 +1,28 @@
+<div class="bench-wizard-container">
+    <div class="form-group">
+        <label>Bench Name</label>
+        <input type="text" name="bench_name" class="form-control" placeholder="my-bench">
+    </div>
+    <div class="form-group">
+        <label>Server</label>
+        <select name="server_name" class="form-control" required>
+            <option value="" selected disabled>Select Server...</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Python Version</label>
+        <select name="python_version" class="form-control">
+            <option value="python3" selected>Loading...</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Frappe Branch</label>
+        <input type="text" name="frappe_branch" class="form-control" value="version-15">
+    </div>
+    <button class="btn btn-primary btn-create-bench">Create Bench</button>
+
+    <div class="terminal-container"
+        style="display:none; margin-top: 20px; background: #000; color: #0f0; padding: 15px; border-radius: 5px; font-family: monospace; height: 300px; overflow-y: auto;">
+        <div id="terminal-logs"></div>
+    </div>
+</div>

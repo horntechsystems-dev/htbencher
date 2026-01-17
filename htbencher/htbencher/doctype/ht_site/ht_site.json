@@ -1,0 +1,120 @@
+{
+    "actions": [],
+    "creation": "2024-05-22 10:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "site_name",
+        "bench",
+        "db_password",
+        "status",
+        "section_break_domain",
+        "root_domain",
+        "subdomain",
+        "column_break_domain",
+        "server_ip",
+        "full_domain",
+        "installed_apps"
+    ],
+    "fields": [
+        {
+            "fieldname": "site_name",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Site Name",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "bench",
+            "fieldtype": "Link",
+            "label": "Bench",
+            "options": "HT Bench",
+            "reqd": 1
+        },
+        {
+            "fieldname": "db_password",
+            "fieldtype": "Password",
+            "label": "DB Password"
+        },
+        {
+            "default": "Active",
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "label": "Status",
+            "options": "Active\nInactive"
+        },
+        {
+            "fieldname": "section_break_domain",
+            "fieldtype": "Section Break",
+            "label": "Domain Configuration"
+        },
+        {
+            "fieldname": "root_domain",
+            "fieldtype": "Link",
+            "label": "Root Domain",
+            "options": "HT Root Domain",
+            "description": "Select root domain for automatic subdomain creation"
+        },
+        {
+            "fieldname": "subdomain",
+            "fieldtype": "Data",
+            "label": "Subdomain",
+            "description": "Subdomain name (e.g., 'mysite' for mysite.horntech.cloud)"
+        },
+        {
+            "fieldname": "column_break_domain",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "server_ip",
+            "fieldtype": "Data",
+            "label": "Server IP Address",
+            "description": "IP address for DNS A record"
+        },
+        {
+            "fieldname": "full_domain",
+            "fieldtype": "Data",
+            "label": "Full Domain",
+            "read_only": 1,
+            "description": "Complete domain name (auto-computed)"
+        },
+        {
+            "fieldname": "installed_apps",
+            "fieldtype": "Table MultiSelect",
+            "label": "Installed Apps",
+            "options": "HT Site App"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2024-05-22 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Htbencher",
+    "name": "HT Site",
+    "custom": 0,
+    "beta": 0,
+    "is_submittable": 0,
+    "istable": 0,
+    "issingle": 0,
+    "naming_rule": "By fieldname",
+    "autoname": "field:site_name",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}

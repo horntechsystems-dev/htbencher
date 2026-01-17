@@ -1,0 +1,96 @@
+{
+    "actions": [],
+    "creation": "2026-01-15 12:55:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "domain_name",
+        "godaddy_api_key",
+        "godaddy_api_secret",
+        "column_break_1",
+        "api_environment",
+        "default_ttl",
+        "is_active"
+    ],
+    "fields": [
+        {
+            "fieldname": "domain_name",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Domain Name",
+            "reqd": 1,
+            "unique": 1,
+            "description": "Root domain (e.g., horntech.cloud)"
+        },
+        {
+            "fieldname": "godaddy_api_key",
+            "fieldtype": "Password",
+            "label": "GoDaddy API Key",
+            "reqd": 1,
+            "description": "API Key from GoDaddy Developer Portal"
+        },
+        {
+            "fieldname": "godaddy_api_secret",
+            "fieldtype": "Password",
+            "label": "GoDaddy API Secret",
+            "reqd": 1,
+            "description": "API Secret from GoDaddy Developer Portal"
+        },
+        {
+            "fieldname": "column_break_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "api_environment",
+            "fieldtype": "Select",
+            "label": "API Environment",
+            "options": "Production\nOTE",
+            "default": "Production",
+            "description": "OTE for testing, Production for live"
+        },
+        {
+            "fieldname": "default_ttl",
+            "fieldtype": "Int",
+            "label": "Default TTL",
+            "default": "600",
+            "description": "Time to live for DNS records (seconds)"
+        },
+        {
+            "fieldname": "is_active",
+            "fieldtype": "Check",
+            "label": "Is Active",
+            "default": "1"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2026-01-15 12:55:00.000000",
+    "modified_by": "Administrator",
+    "module": "Htbencher",
+    "name": "HT Root Domain",
+    "custom": 0,
+    "beta": 0,
+    "is_submittable": 0,
+    "istable": 0,
+    "issingle": 0,
+    "naming_rule": "By fieldname",
+    "autoname": "field:domain_name",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}

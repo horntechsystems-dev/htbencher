@@ -1,0 +1,143 @@
+{
+    "actions": [],
+    "creation": "2024-05-22 10:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "bench_name",
+        "server",
+        "path",
+        "python_version",
+        "frappe_branch",
+        "status",
+        "is_remote",
+        "hostname",
+        "username",
+        "port",
+        "password",
+        "ssh_key_path",
+        "ssh_private_key",
+        "apps"
+    ],
+    "fields": [
+        {
+            "fieldname": "bench_name",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Bench Name",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "server",
+            "fieldtype": "Link",
+            "label": "Server",
+            "options": "HT Server"
+        },
+        {
+            "fieldname": "path",
+            "fieldtype": "Data",
+            "label": "Path",
+            "reqd": 1
+        },
+        {
+            "default": "python3.11",
+            "fieldname": "python_version",
+            "fieldtype": "Data",
+            "label": "Python Version"
+        },
+        {
+            "default": "version-15",
+            "fieldname": "frappe_branch",
+            "fieldtype": "Data",
+            "label": "Frappe Branch"
+        },
+        {
+            "default": "Active",
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "label": "Status",
+            "options": "Active\nInactive"
+        },
+        {
+            "default": "0",
+            "fieldname": "is_remote",
+            "fieldtype": "Check",
+            "label": "Is Remote Bench"
+        },
+        {
+            "depends_on": "is_remote",
+            "fieldname": "hostname",
+            "fieldtype": "Data",
+            "label": "Hostname (IP/Domain)"
+        },
+        {
+            "depends_on": "is_remote",
+            "fieldname": "username",
+            "fieldtype": "Data",
+            "label": "SSH Username"
+        },
+        {
+            "default": "22",
+            "depends_on": "is_remote",
+            "fieldname": "port",
+            "fieldtype": "Int",
+            "label": "SSH Port"
+        },
+        {
+            "depends_on": "is_remote",
+            "fieldname": "password",
+            "fieldtype": "Password",
+            "label": "SSH Password (Optional)"
+        },
+        {
+            "depends_on": "is_remote",
+            "fieldname": "ssh_key_path",
+            "fieldtype": "Data",
+            "label": "SSH Key Path (Local)"
+        },
+        {
+            "depends_on": "is_remote",
+            "fieldname": "ssh_private_key",
+            "fieldtype": "Small Text",
+            "label": "SSH Private Key (Paste here)"
+        },
+        {
+            "fieldname": "apps",
+            "fieldtype": "Table MultiSelect",
+            "label": "Apps",
+            "options": "HT Bench App"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2024-05-22 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Htbencher",
+    "name": "HT Bench",
+    "custom": 0,
+    "beta": 0,
+    "is_submittable": 0,
+    "istable": 0,
+    "issingle": 0,
+    "naming_rule": "By fieldname",
+    "autoname": "field:bench_name",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}

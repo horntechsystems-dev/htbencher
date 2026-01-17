@@ -9,6 +9,13 @@ readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # "frappe~=15.0.0" # Installed and managed by bench.
+    "fabric==2.7.1",
+    "paramiko==3.4.0",
+    "cryptography==41.0.7",
+    "requests==2.31.0",
+    "python-dateutil==2.8.2",
+    "pyopenssl==23.2.0",
+    "redis==4.6.0"
 ]
 
 [build-system]

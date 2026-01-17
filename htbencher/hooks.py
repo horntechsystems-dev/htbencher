@@ -143,23 +143,20 @@ app_license = "mit"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"htbencher.tasks.all"
-# 	],
-# 	"daily": [
-# 		"htbencher.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"htbencher.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"htbencher.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"htbencher.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"hourly": [
+		"htbencher.tasks.bench_health.check_health"
+	],
+	"daily": [
+		"htbencher.tasks.ssl_check.check_expiry"
+	],
+	"weekly": [
+		"htbencher.tasks.backup_tasks.rotate_backups"
+	],
+	"monthly": [
+		"htbencher.tasks.security_scans.run_monthly_scan"
+	],
+}
 
 # Testing
 # -------

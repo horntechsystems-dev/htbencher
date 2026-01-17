@@ -1,0 +1,83 @@
+<div class="row">
+    <div class="col-md-12">
+        <!-- Statistics Section -->
+        <div class="dashboard-section" style="margin-bottom: 20px;">
+            <h4>System Status</h4>
+            <div class="row">
+                <div class="col-sm-3">
+                    <div class="indicator-card"
+                        style="padding: 15px; background: #f8f9fa; border-radius: 5px; text-align: center;">
+                        <span class="indicator-title" style="display: block; color: #6c757d; font-size: 12px;">Active
+                            Benches</span>
+                        <span class="indicator-value active-benches-count"
+                            style="display: block; font-size: 24px; font-weight: bold; color: #28a745;">0</span>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="indicator-card"
+                        style="padding: 15px; background: #f8f9fa; border-radius: 5px; text-align: center;">
+                        <span class="indicator-title" style="display: block; color: #6c757d; font-size: 12px;">Total
+                            Sites</span>
+                        <span class="indicator-value total-sites-count"
+                            style="display: block; font-size: 24px; font-weight: bold; color: #007bff;">0</span>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="indicator-card"
+                        style="padding: 15px; background: #f8f9fa; border-radius: 5px; text-align: center;">
+                        <span class="indicator-title" style="display: block; color: #6c757d; font-size: 12px;">Total
+                            Apps</span>
+                        <span class="indicator-value total-apps-count"
+                            style="display: block; font-size: 24px; font-weight: bold; color: #6f42c1;">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bench Operations Section -->
+        <div class="dashboard-section" style="margin-bottom: 20px;">
+            <h4>Bench Operations</h4>
+            <div class="form-group">
+                <label>Select Bench</label>
+                <select class="form-control bench-selector" style="max-width: 400px;">
+                    <option value="">Loading benches...</option>
+                </select>
+            </div>
+
+            <div class="bench-actions" style="margin-top: 15px; display: none;">
+                <h5 style="margin-bottom: 15px;">Quick Actions</h5>
+                <div class="btn-group" style="margin-right: 10px; margin-bottom: 10px;">
+                    <button class="btn btn-primary btn-sm btn-update-bench">
+                        <i class="fa fa-refresh"></i> Update Bench
+                    </button>
+                    <button class="btn btn-info btn-sm btn-build-bench">
+                        <i class="fa fa-cogs"></i> Build Assets
+                    </button>
+                    <button class="btn btn-warning btn-sm btn-migrate-bench">
+                        <i class="fa fa-database"></i> Migrate
+                    </button>
+                    <button class="btn btn-success btn-sm btn-backup-bench">
+                        <i class="fa fa-save"></i> Backup
+                    </button>
+                </div>
+                <div class="btn-group" style="margin-bottom: 10px;">
+                    <button class="btn btn-default btn-sm btn-install-app">
+                        <i class="fa fa-plus"></i> Install App
+                    </button>
+                    <button class="btn btn-default btn-sm btn-create-site">
+                        <i class="fa fa-globe"></i> Create Site
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operation Log Terminal -->
+        <div class="operation-log" style="display: none; margin-top: 20px;">
+            <h5>Operation Log</h5>
+            <div class="terminal-container"
+                style="background: #000; color: #0f0; padding: 15px; border-radius: 5px; font-family: monospace; height: 300px; overflow-y: auto;">
+                <div id="operation-logs"></div>
+            </div>
+        </div>
+    </div>
+</div>

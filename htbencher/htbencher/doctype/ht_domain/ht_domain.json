@@ -1,0 +1,79 @@
+{
+    "actions": [],
+    "creation": "2024-05-22 10:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "domain_name",
+        "site",
+        "ssl_status",
+        "expiry_date",
+        "auto_renew"
+    ],
+    "fields": [
+        {
+            "fieldname": "domain_name",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Domain Name",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "site",
+            "fieldtype": "Link",
+            "label": "Site",
+            "options": "HT Site",
+            "reqd": 1
+        },
+        {
+            "default": "Pending",
+            "fieldname": "ssl_status",
+            "fieldtype": "Select",
+            "label": "SSL Status",
+            "options": "Pending\nActive\nExpired"
+        },
+        {
+            "fieldname": "expiry_date",
+            "fieldtype": "Date",
+            "label": "Expiry Date"
+        },
+        {
+            "default": "1",
+            "fieldname": "auto_renew",
+            "fieldtype": "Check",
+            "label": "Auto Renew"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2024-05-22 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Htbencher",
+    "name": "HT Domain",
+    "custom": 0,
+    "beta": 0,
+    "is_submittable": 0,
+    "istable": 0,
+    "issingle": 0,
+    "naming_rule": "By fieldname",
+    "autoname": "field:domain_name",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}
