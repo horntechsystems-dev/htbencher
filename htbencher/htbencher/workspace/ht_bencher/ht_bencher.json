@@ -1,0 +1,151 @@
+{
+ "app": "frappe",
+ "charts": [],
+ "content": "[{\"id\":\"NTPgbaRtpQ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">HT Bencher</span>\",\"col\":12}},{\"id\":\"6xDLBBI-up\",\"type\":\"card\",\"data\":{\"card_name\":\"HT Bencher Page\",\"col\":4}},{\"id\":\"6rX5xp7P9B\",\"type\":\"card\",\"data\":{\"card_name\":\"HT Bencher \",\"col\":4}}]",
+ "creation": "2026-01-18 06:59:27.507088",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "grid",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "HT Bencher",
+ "link_type": "DocType",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "HT Bencher ",
+   "link_count": 8,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "HT Server",
+   "link_count": 0,
+   "link_to": "HT Server",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "HT Bench",
+   "link_count": 0,
+   "link_to": "HT Bench",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "HT Bench Metric",
+   "link_count": 0,
+   "link_to": "HT Bench Metric",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "HT App",
+   "link_count": 0,
+   "link_to": "HT App",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "HT Site",
+   "link_count": 0,
+   "link_to": "HT Site",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "HT Root Domain",
+   "link_count": 0,
+   "link_to": "HT Root Domain",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "HT Domain",
+   "link_count": 0,
+   "link_to": "HT Domain",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "HT Security Scan",
+   "link_count": 0,
+   "link_to": "HT Security Scan",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "HT Bencher Page",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Bench Wizard",
+   "link_count": 0,
+   "link_to": "bench-creation-wizard",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "HT Dashboard",
+   "link_count": 0,
+   "link_to": "ht-dashboard",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-01-18 07:11:10.193176",
+ "modified_by": "Administrator",
+ "module": "Htbencher",
+ "name": "HT Bencher",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 28.0,
+ "shortcuts": [],
+ "title": "HT Bencher",
+ "type": "Workspace"
+}
