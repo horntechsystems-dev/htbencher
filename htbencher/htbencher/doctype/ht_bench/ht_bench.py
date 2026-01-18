@@ -37,6 +37,7 @@ class HTBench(Document):
 		# Update the path in the document
 		self.ssh_key_path = key_path
 
+
 	def after_insert(self):
 		"""Trigger bench creation after document is created"""
 		frappe.enqueue(
@@ -46,6 +47,20 @@ class HTBench(Document):
 			bench_name=self.name
 		)
 		frappe.msgprint(f"Bench creation started for {self.bench_name}. Check background jobs or logs for progress.")
+
+	@frappe.whitelist()
+	def install_app(self, app_name):
+		"""
+		Install (Get) an app on this bench
+		"""
+		frappe.enqueue(
+			"htbencher.htbencher.doctype.ht_bench.ht_bench.get_app_background",
+			queue="long",
+			timeout=3600,
+			bench_name=self.name,
+			app_name=app_name
+		)
+		frappe.msgprint(f"App installation started for {app_name} on {self.bench_name}.")
 
 def create_bench_background(bench_name):
 	"""
@@ -63,11 +78,6 @@ def create_bench_background(bench_name):
 			"--python", doc.python_version or "python3.10"
 		]
 		
-		# We assume the parent directory of 'path' exists or bench init creates it?
-		# bench init creates the directory 'path'. But the parent of 'path' must exist and be writable.
-		# For remote, typically we might need to be in a home dir or similar.
-		# If doc.path is absolute, bench init handles it? Yes.
-		
 		success, output = execute_command(
 			cmd, 
 			bench_doc=doc, 
@@ -82,3 +92,74 @@ def create_bench_background(bench_name):
 			
 	except Exception as e:
 		frappe.log_error(f"Error in create_bench_background: {str(e)}", "Bench Creation Error")
+
+
+def get_app_background(bench_name, app_name):
+	"""
+	Background job to run bench get-app
+	"""
+	try:
+		bench_doc = frappe.get_doc("HT Bench", bench_name)
+		app_doc = frappe.get_doc("HT App", app_name)
+		from htbencher.custom.ssh_utils import execute_command, write_file
+		
+		# Define Paths
+		# We need a robust way to determine where to put the key
+		# Using /tmp is generally safe for temporary keys
+		key_filename = f"deploy_key_{app_doc.name}.key"
+		key_path = f"/tmp/{key_filename}"
+		
+		env = {}
+		cmd = ["bench", "get-app", app_doc.repo_url]
+		
+		if app_doc.branch:
+			cmd.extend(["--branch", app_doc.branch])
+		
+		key_created = False
+		
+		# Handle Private Repo
+		if app_doc.is_private and app_doc.ssh_private_key:
+			# 1. Write Key File
+			key_content = app_doc.ssh_private_key.strip() + "\n"
+			success, msg = write_file(key_content, key_path, bench_doc)
+			if not success:
+				frappe.log_error(f"Failed to write SSH key: {msg}", "Bench Get-App Error")
+				return
+
+			key_created = True
+			
+			# 2. Set Permissions (chmod 600)
+			success, msg = execute_command(f"chmod 600 {key_path}", bench_doc=bench_doc)
+			if not success:
+				frappe.log_error(f"Failed to chmod SSH key: {msg}", "Bench Get-App Error")
+				return 
+				
+			# 3. Configure GIT_SSH_COMMAND
+			ssh_cmd = f"ssh -i {key_path} -o StrictHostKeyChecking=no"
+			env["GIT_SSH_COMMAND"] = f"'{ssh_cmd}'"
+			
+			# Note: We must quote the value so the export command is valid shell syntax
+			# export GIT_SSH_COMMAND='ssh ...'
+		
+		success, output = execute_command(
+			cmd,
+			bench_doc=bench_doc,
+			cwd=bench_doc.path,
+			task_id=f"get_app_{app_name}",
+			env=env
+		)
+		
+		if success:
+			frappe.log_error(f"App {app_name} installed on bench {bench_name}", "Bench Get-App Success")
+		else:
+			frappe.log_error(f"Failed to install app {app_name}: {output}", "Bench Get-App Failed")
+			
+	except Exception as e:
+		frappe.log_error(f"Error in get_app_background: {str(e)}", "Bench Get-App Error")
+	finally:
+		# Cleanup Key File
+		if key_created:
+			try:
+				execute_command(f"rm {key_path}", bench_doc=bench_doc)
+			except Exception:
+				pass

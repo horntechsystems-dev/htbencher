@@ -1,6 +1,20 @@
 frappe.ui.form.on('HT Bench', {
     refresh: function (frm) {
-
+        if (!frm.is_new()) {
+            frm.add_custom_button(__('Get App (Install)'), function () {
+                frappe.prompt({
+                    label: 'App to Install',
+                    fieldname: 'app_name',
+                    fieldtype: 'Link',
+                    options: 'HT App',
+                    reqd: 1
+                }, (values) => {
+                    frm.call('install_app', {
+                        app_name: values.app_name
+                    });
+                });
+            }, __('Actions'));
+        }
     },
     server: function (frm) {
         if (frm.doc.server) {

@@ -1,8 +1,146 @@
 
 import frappe
-import subprocess,os
+import subprocess, os
 import select
 from fabric import Connection
+import shlex
+import tempfile
+
+ALLOWED_COMMANDS = ['bench', 'cd', 'ls', 'git', 'echo', 'chmod', 'rm', 'sudo', 'service', 'systemctl']
+ALLOWED_BENCH_SUBCOMMANDS = [
+    'init', 'get-app', 'new-site', 'drop-site', 'backup', 'migrate', 
+    '--site', 'setup', 'restart', 'start', 'pip', 'console', 'destroy-all-sites',
+    'remove-app', 'uninstall-app', 'install-app', 'build'
+]
+
+def validate_command(command):
+    """
+    Validate if the command is allowed to be executed.
+    """
+    if not command:
+        return False, "Empty command"
+        
+    # Split command into parts safely
+    try:
+        # Handle command chaining
+        parts = []
+        current_part = []
+        tokens = shlex.split(command)
+        
+        for token in tokens:
+            if token in ['&&', ';', '||']:
+                if current_part:
+                    parts.append(current_part)
+                current_part = []
+            else:
+                current_part.append(token)
+        if current_part:
+            parts.append(current_part)
+            
+        for cmd_parts in parts:
+            if not cmd_parts:
+                continue
+                
+            base_cmd = cmd_parts[0]
+            
+            # Handle export (env vars)
+            if base_cmd == 'export':
+                continue
+                
+            if base_cmd not in ALLOWED_COMMANDS:
+                return False, f"Command '{base_cmd}' is not allowed."
+                
+            if base_cmd == 'bench':
+                if len(cmd_parts) > 1:
+                    subcmd = cmd_parts[1]
+                    # Handle 'bench --site site_name subcommand'
+                    if subcmd == '--site':
+                        if len(cmd_parts) > 3:
+                            real_subcmd = cmd_parts[3]
+                            if real_subcmd not in ALLOWED_BENCH_SUBCOMMANDS:
+                                return False, f"Bench subcommand '{real_subcmd}' is not allowed."
+                    elif subcmd not in ALLOWED_BENCH_SUBCOMMANDS:
+                         return False, f"Bench subcommand '{subcmd}' is not allowed."
+        
+        return True, "Valid Command"
+        
+    except Exception as e:
+        return False, f"Command validation error: {str(e)}"
+
+def write_file(content, destination_path, bench_doc):
+    """
+    Write content to a file safely. Supports local and remote benches.
+    """
+    try:
+        is_remote = False
+        if bench_doc:
+            if hasattr(bench_doc, 'server') and bench_doc.server:
+                try:
+                    server_doc = frappe.get_doc("HT Server", bench_doc.server)
+                    is_local_server = server_doc.hostname in ["localhost", "127.0.0.1", "::1", "local"]
+                    is_remote = not is_local_server
+                except Exception:
+                    is_remote = bench_doc.is_remote
+            elif hasattr(bench_doc, 'is_remote'):
+                is_remote = bench_doc.is_remote
+        
+        if is_remote:
+            # Create a temp file locally first
+            with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmp_file:
+                tmp_file.write(content)
+                tmp_path = tmp_file.name
+                
+            try:
+                # Use Fabric to upload
+                # We need credentials logic duplicated from execute_remote_command or refactored
+                # For brevity, I will refactor get_connection
+                c = get_connection(bench_doc)
+                c.put(tmp_path, destination_path)
+                return True, "File uploaded successfully"
+            finally:
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+        else:
+            # Local write
+            # Check permissions/path safety? For now assume root is okay or bench user is okay.
+            with open(destination_path, 'w') as f:
+                f.write(content)
+            return True, "File written successfully"
+            
+    except Exception as e:
+        frappe.log_error(f"Write File Error: {str(e)}", "SSH File Writer")
+        return False, str(e)
+
+def get_connection(bench_doc):
+    """
+    Helper to get fabric connection
+    """
+    hostname = getattr(bench_doc, 'hostname', None)
+    username = getattr(bench_doc, 'username', None)
+    ssh_key_path = getattr(bench_doc, 'ssh_key_path', None)
+    password = None
+    
+    if bench_doc.server:
+        server_doc = frappe.get_doc("HT Server", bench_doc.server)
+        hostname = server_doc.hostname
+        username = server_doc.username
+        password = server_doc.get_password('password')
+        ssh_key_path = server_doc.ssh_key_path or getattr(bench_doc, 'ssh_key_path', None)
+    elif getattr(bench_doc, 'password', None):
+        password = bench_doc.get_password('password')
+    
+    connect_kwargs = {}
+    if password:
+        connect_kwargs['password'] = password
+    if ssh_key_path:
+        connect_kwargs['key_filename'] = ssh_key_path
+        
+    return Connection(
+        host=hostname,
+        user=username,
+        port=bench_doc.port or 22,
+        connect_kwargs=connect_kwargs
+    )
 
 def execute_command(command, bench_doc=None, cwd=None, task_id=None, display_command=None, env=None):
     """
@@ -12,6 +150,14 @@ def execute_command(command, bench_doc=None, cwd=None, task_id=None, display_com
     """
     if isinstance(command, list):
         command = " ".join(command)
+        
+    # Validate Command
+    is_valid, reason = validate_command(command)
+    if not is_valid:
+        frappe.log_error(f"Blocked Command: {command} Reason: {reason}", "Security Audit")
+        if task_id:
+             log_stream(task_id, f"Security Block: {reason}", error=True)
+        return False, f"Security Block: {reason}"
     
     # Capture user and site for background threads/tasks
     user = frappe.session.user if (frappe.session and hasattr(frappe.session, 'user')) else "Administrator"
@@ -26,7 +172,7 @@ def execute_command(command, bench_doc=None, cwd=None, task_id=None, display_com
             # Check Linked Server
             try:
                 server_doc = frappe.get_doc("HT Server", bench_doc.server)
-                is_local_server = server_doc.hostname in ["localhost", "127.0.0.1", "::1"] or server_doc.server_name.lower() == "local"
+                is_local_server = server_doc.hostname in ["localhost", "127.0.0.1", "::1", "local"]
                 is_remote = not is_local_server
             except Exception:
                 # Fallback if server doc fetch fails
@@ -120,39 +266,21 @@ def execute_remote_command(command, bench_doc, cwd=None, task_id=None, user=None
         if not site:
             site = frappe.local.site if hasattr(frappe.local, 'site') else None
 
-        # Determine credentials
+        # Determine credentials - Refactored into get_connection but kept here for now for minimal change flow?
+        # Actually I should use get_connection here too to be clean.
+        c = get_connection(bench_doc)
+        
+        # We need password for watchers
         password = None
-        hostname = getattr(bench_doc, 'hostname', None)
-        username = getattr(bench_doc, 'username', None)
-        ssh_key_path = getattr(bench_doc, 'ssh_key_path', None)
-        
         if bench_doc.server:
-            server_doc = frappe.get_doc("HT Server", bench_doc.server)
-            hostname = server_doc.hostname
-            username = server_doc.username
-            password = server_doc.get_password('password')
-            ssh_key_path = server_doc.ssh_key_path or getattr(bench_doc, 'ssh_key_path', None)
-
+             server_doc = frappe.get_doc("HT Server", bench_doc.server)
+             password = server_doc.get_password('password')
         elif getattr(bench_doc, 'password', None):
-            password = bench_doc.get_password('password')
-        
-        connect_kwargs = {}
-        if password:
-            connect_kwargs['password'] = password
-        
-        if ssh_key_path:
-            connect_kwargs['key_filename'] = ssh_key_path
-            
-        c = Connection(
-            host=hostname,
-            user=username,
-            port=bench_doc.port or 22,
-            connect_kwargs=connect_kwargs
-        )
+             password = bench_doc.get_password('password')
         
         log_cmd = display_command if display_command else command
-        frappe.log_error(f"Executing Remote ({hostname}): {log_cmd} in {cwd}", "SSH Executor")
-        log_stream(task_id, f"Connected to {hostname}", user=user, site=site)
+        frappe.log_error(f"Executing Remote: {log_cmd} in {cwd}", "SSH Executor")
+        log_stream(task_id, f"Connected to {c.host}", user=user, site=site)
         
         # Sudo password responder
         watchers = []
