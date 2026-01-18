@@ -21,6 +21,17 @@
     </div>
     <button class="btn btn-primary btn-create-bench">Create Bench</button>
 
+    <div class="progress-container" style="display:none; margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span id="progress-status" style="font-weight: bold;">Preparing...</span>
+            <span id="progress-percentage">0%</span>
+        </div>
+        <div class="progress" style="height: 20px;">
+            <div id="creation-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    </div>
+
     <div class="terminal-container"
         style="display:none; margin-top: 20px; background: #000; color: #0f0; padding: 15px; border-radius: 5px; font-family: monospace; height: 300px; overflow-y: auto;">
         <div id="terminal-logs"></div>

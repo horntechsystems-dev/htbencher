@@ -71,7 +71,8 @@ def create_bench_background(bench_name):
 		success, output = execute_command(
 			cmd, 
 			bench_doc=doc, 
-			task_id=f"create_bench_{doc.name}"
+			task_id=f"create_bench_{doc.name}",
+			env={"FRAPPE_DOCKER_BUILD": "1"}
 		)
 		
 		if success:

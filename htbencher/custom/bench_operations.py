@@ -8,13 +8,27 @@ def create_bench(bench_name, server, python_version="python3.11", frappe_branch=
     """
     Create a new bench with specified configuration
     """
+    def update_progress(percentage, status):
+        if task_id:
+            frappe.publish_realtime('htbench_task_progress', {
+                'task_id': task_id,
+                'percentage': percentage,
+                'status': status
+            }, user=frappe.session.user)
+
+    # Determine execution directory.
+    from frappe.utils import get_bench_path
+    parent_dir = os.path.dirname(get_bench_path())
+    absolute_path = os.path.join(parent_dir, bench_name)
+
     try:
+        update_progress(10, "Preparing Bench Record...")
         # Create HT Bench record first to get connection details or link it
         bench_doc = frappe.get_doc({
             "doctype": "HT Bench",
             "bench_name": bench_name,
             "server": server,
-            "path": bench_name, # Default path same as name
+            "path": absolute_path, # Use absolute path
             "python_version": python_version,
             "frappe_branch": frappe_branch,
             "status": "Inactive" # Mark active after success
@@ -28,26 +42,39 @@ def create_bench(bench_name, server, python_version="python3.11", frappe_branch=
             "--python", python_version
         ]
         
-        # Determine execution directory.
-        from frappe.utils import get_bench_path
-        cwd = os.path.dirname(get_bench_path())
+        update_progress(20, "Initializing Bench (this may take a few minutes)...")
+        
+        cwd = parent_dir
         
         # Execute command using the bench_doc which now has server link for sudo responder
-        success, output = execute_command(cmd, bench_doc=bench_doc, cwd=cwd, task_id=task_id)
+        success, output = execute_command(
+            cmd, 
+            bench_doc=bench_doc, 
+            cwd=cwd, 
+            task_id=task_id, 
+            env={"FRAPPE_DOCKER_BUILD": "1"}
+        )
 
         if not success:
             frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'failed'}, user=frappe.session.user)
             return False
 
+        update_progress(60, "Bench Initialized. Finalizing setup...")
         # Mark bench as active
         bench_doc.status = "Active"
         bench_doc.save(ignore_permissions=True)
         frappe.db.commit()
 
         if apps:
-            for app_name in apps.split(','): 
-                get_app(bench_name, app_name.strip(), task_id=task_id)
+            app_list = apps.split(',')
+            total_apps = len(app_list)
+            for idx, app_name in enumerate(app_list):
+                app_name = app_name.strip()
+                progress = 60 + int((idx / total_apps) * 35)
+                update_progress(progress, f"Installing App: {app_name} ({idx+1}/{total_apps})...")
+                get_app(bench_name, app_name, task_id=task_id)
 
+        update_progress(100, "Bench Creation Successful!")
         frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'success'}, user=frappe.session.user)
         return True
     except Exception as e:
@@ -81,8 +108,9 @@ def get_system_pythons(server=None):
         
         # We use execute_command which handles local/remote switch based on server
         success, output = execute_command(cmd, bench_doc=bench_doc)
-        
+        print(output,"___"*100)
         if success:
+            frappe.log_error(f"Python detection output: {output}", "Bench Operations Debug")
             lines = output.strip().split('\n')
             for line in lines:
                 line = line.strip()
@@ -98,6 +126,8 @@ def get_system_pythons(server=None):
                 # Accept 'python3' or 'python3.X'
                 if name == 'python3' or (name.startswith('python3.') and name[-1].isdigit()):
                      pythons.append(name)
+        else:
+            frappe.log_error(f"Python detection failed: {output}", "Bench Operations Error")
         
         # Fallback to local glob if command failed or returned nothing (and no server specified)
         if not pythons and not server:
@@ -114,7 +144,7 @@ def get_system_pythons(server=None):
             pythons.insert(0, 'python3')
             
     except Exception as e:
-        frappe.log_error(f"Error fetching pythons: {e}", "Bench Operations")
+        frappe.log_error(f"Error fetching pythons: {e}\n{frappe.get_traceback()}", "Bench Operations")
         pythons = ['python3', 'python3.10', 'python3.11']
         
     return pythons
@@ -134,6 +164,9 @@ def get_app(bench_name, app_doc_name, task_id=None):
         bench_doc = frappe.db.get_value("HT Bench", {"bench_name": bench_name}, "name")
         if bench_doc:
              bench_doc = frappe.get_doc("HT Bench", bench_doc)
+        
+        # Use stored absolute path or fallback to base directory
+        bench_path = bench_doc.path if bench_doc and bench_doc.path else bench_name
         
         # Build base command
         bench_cmd = f"bench get-app {repo_url} --branch {branch}"
@@ -186,10 +219,23 @@ def get_app(bench_name, app_doc_name, task_id=None):
                 f"{bench_cmd}"
             )
             
-            success, output = execute_command(full_cmd, bench_doc=bench_doc if bench_doc else None, cwd=bench_name, task_id=task_id, display_command=display_cmd)
+            success, output = execute_command(
+                full_cmd, 
+                bench_doc=bench_doc if bench_doc else None, 
+                cwd=bench_path, 
+                task_id=task_id, 
+                display_command=display_cmd,
+                env={"FRAPPE_DOCKER_BUILD": "1"}
+            )
 
         else:
-            success, output = execute_command(bench_cmd, bench_doc=bench_doc if bench_doc else None, cwd=bench_name, task_id=task_id)
+            success, output = execute_command(
+                bench_cmd, 
+                bench_doc=bench_doc if bench_doc else None, 
+                cwd=bench_path, 
+                task_id=task_id,
+                env={"FRAPPE_DOCKER_BUILD": "1"}
+            )
         
         return success
     except Exception as e:
@@ -208,7 +254,17 @@ def update_bench(bench_name, task_id=None):
         if bench_doc:
              bench_doc = frappe.get_doc("HT Bench", bench_doc)
 
-        success, output = execute_command(cmd, bench_doc=bench_doc if bench_doc else None, cwd=bench_name, task_id=task_id)
+        # Use stored absolute path or fallback to name
+        bench_path = bench_doc.path if bench_doc and bench_doc.path else bench_name
+
+        success, output = execute_command(
+            cmd, 
+            bench_doc=bench_doc if bench_doc else None, 
+            cwd=bench_path, 
+            task_id=task_id,
+            env={"FRAPPE_DOCKER_BUILD": "1"}
+        )
+
         
         frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'success' if success else 'failed'}, user=frappe.session.user)
         return success
@@ -229,7 +285,17 @@ def build_bench(bench_name, task_id=None):
         if bench_doc:
              bench_doc = frappe.get_doc("HT Bench", bench_doc)
              
-        success, output = execute_command(cmd, bench_doc=bench_doc if bench_doc else None, cwd=bench_name, task_id=task_id)
+        # Use stored absolute path or fallback to name
+        bench_path = bench_doc.path if bench_doc and bench_doc.path else bench_name
+
+        success, output = execute_command(
+            cmd, 
+            bench_doc=bench_doc if bench_doc else None, 
+            cwd=bench_path, 
+            task_id=task_id,
+            env={"FRAPPE_DOCKER_BUILD": "1"}
+        )
+
         
         frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'success' if success else 'failed'}, user=frappe.session.user)
         return success

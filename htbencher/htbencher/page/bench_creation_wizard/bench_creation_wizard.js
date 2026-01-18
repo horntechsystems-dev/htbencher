@@ -92,8 +92,10 @@ htbencher.BenchCreationWizard = class BenchCreationWizard {
                 return;
             }
 
+            this.wrapper.find('.progress-container').show();
             this.wrapper.find('.terminal-container').show();
             this.wrapper.find('#terminal-logs').html('<p>Starting bench creation...</p>');
+            this.update_progress(0, "Starting...");
             this.wrapper.find('.btn-create-bench').prop('disabled', true);
 
             frappe.call({
@@ -120,10 +122,16 @@ htbencher.BenchCreationWizard = class BenchCreationWizard {
     }
 
     listen_to_logs(task_id) {
+        frappe.realtime.on('htbench_task_progress', (data) => {
+            if (data.task_id === task_id) {
+                this.update_progress(data.percentage, data.status);
+            }
+        });
+
         frappe.realtime.on('htbench_task_log', (data) => {
             if (data.task_id === task_id) {
-                let color = data.error ? 'red' : '#0f0';
-                let html = `<div style="color: ${color};">${data.log}</div>`;
+                let color = data.error ? '#ff5858' : '#0f0';
+                let html = `<div style="color: ${color};"><span style="color: #888;">[${new Date().toLocaleTimeString()}]</span> ${data.log}</div>`;
                 let terminal = this.wrapper.find('#terminal-logs');
                 terminal.append(html);
 
@@ -136,10 +144,24 @@ htbencher.BenchCreationWizard = class BenchCreationWizard {
         frappe.realtime.on('htbench_task_complete', (data) => {
             if (data.task_id === task_id) {
                 let msg = data.status === 'success' ? 'Task Completed Successfully' : 'Task Failed';
-                let color = data.status === 'success' ? '#0f0' : 'red';
+                let color = data.status === 'success' ? '#0f0' : '#ff5858';
                 this.wrapper.find('#terminal-logs').append(`<div style="color: ${color}; font-weight: bold; margin-top: 10px;">=== ${msg} ===</div>`);
                 this.wrapper.find('.btn-create-bench').prop('disabled', false);
+
+                if (data.status === 'success') {
+                    this.update_progress(100, "Completed");
+                }
             }
         });
+    }
+
+    update_progress(percentage, status) {
+        let bar = this.wrapper.find('#creation-progress-bar');
+        bar.css('width', percentage + '%');
+        bar.attr('aria-valuenow', percentage);
+        this.wrapper.find('#progress-percentage').text(percentage + '%');
+        if (status) {
+            this.wrapper.find('#progress-status').text(status);
+        }
     }
 }

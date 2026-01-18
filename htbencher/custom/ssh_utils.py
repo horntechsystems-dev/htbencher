@@ -1,13 +1,14 @@
 
 import frappe
-import subprocess
+import subprocess,os
 import select
 from fabric import Connection
 
-def execute_command(command, bench_doc=None, cwd=None, task_id=None, display_command=None):
+def execute_command(command, bench_doc=None, cwd=None, task_id=None, display_command=None, env=None):
     """
     Execute command either locally or remotely based on bench_doc configuration.
     Streams output to frontend if task_id is provided.
+    'env' is a dictionary of environment variables to set.
     """
     if isinstance(command, list):
         command = " ".join(command)
@@ -34,15 +35,20 @@ def execute_command(command, bench_doc=None, cwd=None, task_id=None, display_com
             is_remote = bench_doc.is_remote
         
     if is_remote:
-        return execute_remote_command(command, bench_doc, cwd, task_id, user=user, site=site, display_command=display_command)
+        return execute_remote_command(command, bench_doc, cwd, task_id, user=user, site=site, display_command=display_command, env=env)
     else:
-        return execute_local_command(command, cwd, task_id, user=user, site=site, display_command=display_command)
+        return execute_local_command(command, cwd, task_id, user=user, site=site, display_command=display_command, env=env)
 
-def execute_local_command(command, cwd=None, task_id=None, user=None, site=None, display_command=None):
+def execute_local_command(command, cwd=None, task_id=None, user=None, site=None, display_command=None, env=None):
     """
     Execute command locally using subprocess with streaming
     """
     try:
+        # Prep environment
+        full_env = os.environ.copy()
+        if env:
+            full_env.update(env)
+            
         if not user:
             user = frappe.session.user if (frappe.session and hasattr(frappe.session, 'user')) else "Administrator"
         if not site:
@@ -55,6 +61,7 @@ def execute_local_command(command, cwd=None, task_id=None, user=None, site=None,
             command, 
             shell=True, 
             cwd=cwd, 
+            env=full_env,
             stdout=subprocess.PIPE, 
             stderr=subprocess.PIPE,
             text=True,
@@ -95,11 +102,18 @@ def execute_local_command(command, cwd=None, task_id=None, user=None, site=None,
         log_stream(task_id, f"Error: {error_msg}", error=True, user=user, site=site)
         return False, str(e)
 
-def execute_remote_command(command, bench_doc, cwd=None, task_id=None, user=None, site=None, display_command=None):
+def execute_remote_command(command, bench_doc, cwd=None, task_id=None, user=None, site=None, display_command=None, env=None):
     """
     Execute command remotely using fabric
     """
     try:
+        # Prepend environment variables to command if provided
+        if env:
+            env_prefix = " ".join([f"{k}={v}" for k, v in env.items()])
+            command = f"export {env_prefix} && {command}"
+            if display_command:
+                display_command = f"export {env_prefix} && {display_command}"
+        
         from invoke import Responder
         if not user:
             user = frappe.session.user if (frappe.session and hasattr(frappe.session, 'user')) else "Administrator"
@@ -108,18 +122,18 @@ def execute_remote_command(command, bench_doc, cwd=None, task_id=None, user=None
 
         # Determine credentials
         password = None
-        hostname = bench_doc.hostname
-        username = bench_doc.username
-        ssh_key_path = bench_doc.ssh_key_path
+        hostname = getattr(bench_doc, 'hostname', None)
+        username = getattr(bench_doc, 'username', None)
+        ssh_key_path = getattr(bench_doc, 'ssh_key_path', None)
         
         if bench_doc.server:
             server_doc = frappe.get_doc("HT Server", bench_doc.server)
             hostname = server_doc.hostname
             username = server_doc.username
             password = server_doc.get_password('password')
-            ssh_key_path = server_doc.ssh_key_path or bench_doc.ssh_key_path
+            ssh_key_path = server_doc.ssh_key_path or getattr(bench_doc, 'ssh_key_path', None)
 
-        elif bench_doc.password:
+        elif getattr(bench_doc, 'password', None):
             password = bench_doc.get_password('password')
         
         connect_kwargs = {}
