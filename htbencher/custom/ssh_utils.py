@@ -6,7 +6,7 @@ from fabric import Connection
 import shlex
 import tempfile
 
-ALLOWED_COMMANDS = ['bench', 'cd', 'ls', 'git', 'echo', 'chmod', 'rm', 'sudo', 'service', 'systemctl']
+ALLOWED_COMMANDS = ['bench', 'cd', 'ls', 'git', 'echo', 'chmod', 'rm', 'sudo', 'service', 'systemctl', 'mktemp', 'python3', 'python', 'cat']
 ALLOWED_BENCH_SUBCOMMANDS = [
     'init', 'get-app', 'new-site', 'drop-site', 'backup', 'migrate', 
     '--site', 'setup', 'restart', 'start', 'pip', 'console', 'destroy-all-sites',
@@ -45,6 +45,10 @@ def validate_command(command):
             
             # Handle export (env vars)
             if base_cmd == 'export':
+                continue
+                
+            # Handle variable assignments (e.g. temp_key=$(mktemp) or VAR=val)
+            if '=' in base_cmd and not base_cmd.startswith('/'):
                 continue
                 
             if base_cmd not in ALLOWED_COMMANDS:
@@ -142,7 +146,7 @@ def get_connection(bench_doc):
         connect_kwargs=connect_kwargs
     )
 
-def execute_command(command, bench_doc=None, cwd=None, task_id=None, display_command=None, env=None):
+def execute_command(command, bench_doc=None, cwd=None, task_id=None, display_command=None, env=None, user=None, site=None):
     """
     Execute command either locally or remotely based on bench_doc configuration.
     Streams output to frontend if task_id is provided.
@@ -159,9 +163,11 @@ def execute_command(command, bench_doc=None, cwd=None, task_id=None, display_com
              log_stream(task_id, f"Security Block: {reason}", error=True)
         return False, f"Security Block: {reason}"
     
-    # Capture user and site for background threads/tasks
-    user = frappe.session.user if (frappe.session and hasattr(frappe.session, 'user')) else "Administrator"
-    site = frappe.local.site if hasattr(frappe.local, 'site') else None
+    # Capture user and site for background threads/tasks if not provided
+    if not user:
+        user = frappe.session.user if (frappe.session and hasattr(frappe.session, 'user')) else "Administrator"
+    if not site:
+        site = frappe.local.site if hasattr(frappe.local, 'site') else None
     
     log_cmd = display_command if display_command else command
     log_stream(task_id, f"Executing: {log_cmd}", user=user, site=site)
@@ -359,3 +365,18 @@ def log_stream(task_id, message, error=False, user=None, site=None):
             },
             user=user
         )
+        
+        # Also store in cache for API polling
+        try:
+            cache_key = f"htbench_logs::{task_id}"
+            logs = frappe.cache().get_value(cache_key) or []
+            logs.append({
+                "log": message,
+                "error": error,
+                "timestamp": frappe.utils.now()
+            })
+            frappe.cache().set_value(cache_key, logs, expires_in_sec=3600)
+            
+            # If task complete/error, maybe set status? but logs are enough for now.
+        except Exception:
+            pass

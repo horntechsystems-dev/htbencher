@@ -1,0 +1,80 @@
+{
+    "actions": [],
+    "creation": "2024-05-22 10:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "account_name",
+        "github_token",
+        "status",
+        "ssh_private_key",
+        "ssh_public_key"
+    ],
+    "fields": [
+        {
+            "fieldname": "account_name",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Account Name",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "github_token",
+            "fieldtype": "Password",
+            "label": "GitHub Personal Access Token",
+            "description": "Required for fetching repositories and branches"
+        },
+        {
+            "default": "Active",
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "in_list_view": 1,
+            "label": "Status",
+            "options": "Active\nInactive"
+        },
+        {
+            "fieldname": "ssh_private_key",
+            "fieldtype": "Small Text",
+            "label": "SSH Private Key",
+            "description": "Paste your GitHub SSH private key here"
+        },
+        {
+            "fieldname": "ssh_public_key",
+            "fieldtype": "Small Text",
+            "label": "SSH Public Key",
+            "description": "This is the public key to add to your GitHub settings"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2024-05-22 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Htbencher",
+    "name": "HT Github Account",
+    "custom": 0,
+    "beta": 0,
+    "is_submittable": 0,
+    "istable": 0,
+    "issingle": 0,
+    "naming_rule": "By fieldname",
+    "autoname": "field:account_name",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}

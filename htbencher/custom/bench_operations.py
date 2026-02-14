@@ -23,6 +23,9 @@ def create_bench(bench_name, server, python_version="python3.11", frappe_branch=
 
     try:
         update_progress(10, "Preparing Bench Record...")
+        if task_id:
+            frappe.cache().set_value(f"htbench_status::{task_id}", "running", expires_in_sec=3600)
+            
         # Create HT Bench record first to get connection details or link it
         bench_doc = frappe.get_doc({
             "doctype": "HT Bench",
@@ -56,6 +59,8 @@ def create_bench(bench_name, server, python_version="python3.11", frappe_branch=
         )
 
         if not success:
+            if task_id:
+                 frappe.cache().set_value(f"htbench_status::{task_id}", "failed", expires_in_sec=3600)
             frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'failed'}, user=frappe.session.user)
             return False
 
@@ -75,10 +80,14 @@ def create_bench(bench_name, server, python_version="python3.11", frappe_branch=
                 get_app(bench_name, app_name, task_id=task_id)
 
         update_progress(100, "Bench Creation Successful!")
+        if task_id:
+             frappe.cache().set_value(f"htbench_status::{task_id}", "success", expires_in_sec=3600)
         frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'success'}, user=frappe.session.user)
         return True
     except Exception as e:
         frappe.log_error(str(e), "Bench Creation Failed")
+        if task_id:
+             frappe.cache().set_value(f"htbench_status::{task_id}", "failed", expires_in_sec=3600)
         execute_command(f"Error: {e}", task_id=task_id) # Log error to stream
         frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'failed'}, user=frappe.session.user)
         return False
@@ -265,11 +274,14 @@ def update_bench(bench_name, task_id=None):
             env={"FRAPPE_DOCKER_BUILD": "1"}
         )
 
-        
+        if task_id:
+             frappe.cache().set_value(f"htbench_status::{task_id}", "success" if success else "failed", expires_in_sec=3600)
         frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'success' if success else 'failed'}, user=frappe.session.user)
         return success
     except Exception as e:
         frappe.log_error(f"Failed to update bench {bench_name}: {e}", "Bench Update")
+        if task_id:
+             frappe.cache().set_value(f"htbench_status::{task_id}", "failed", expires_in_sec=3600)
         execute_command(f"Error: {e}", task_id=task_id)
         frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'failed'}, user=frappe.session.user)
         return False
@@ -296,14 +308,83 @@ def build_bench(bench_name, task_id=None):
             env={"FRAPPE_DOCKER_BUILD": "1"}
         )
 
-        
+        if task_id:
+             frappe.cache().set_value(f"htbench_status::{task_id}", "success" if success else "failed", expires_in_sec=3600)
         frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'success' if success else 'failed'}, user=frappe.session.user)
         return success
     except Exception as e:
         frappe.log_error(f"Failed to build bench {bench_name}: {e}", "Bench Build")
+        if task_id:
+             frappe.cache().set_value(f"htbench_status::{task_id}", "failed", expires_in_sec=3600)
         execute_command(f"Error: {e}", task_id=task_id)
         frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'failed'}, user=frappe.session.user)
         return False
+
+def uninstall_app(bench_name, app_name, task_id=None):
+    """
+    Remove an app from a bench
+    """
+    try:
+        cmd = ["bench", "remove-app", app_name]
+        
+        bench_doc = frappe.db.get_value("HT Bench", {"bench_name": bench_name}, "name")
+        if bench_doc:
+             bench_doc = frappe.get_doc("HT Bench", bench_doc)
+             
+        bench_path = bench_doc.path if bench_doc and bench_doc.path else bench_name
+
+        success, output = execute_command(
+            cmd, 
+            bench_doc=bench_doc if bench_doc else None, 
+            cwd=bench_path, 
+            task_id=task_id,
+            env={"FRAPPE_DOCKER_BUILD": "1"}
+        )
+
+        if task_id:
+             frappe.cache().set_value(f"htbench_status::{task_id}", "success" if success else "failed", expires_in_sec=3600)
+        frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'success' if success else 'failed'}, user=frappe.session.user)
+        return success
+    except Exception as e:
+        frappe.log_error(f"Failed to remove app {app_name} from bench {bench_name}: {e}", "Bench App Removal")
+        if task_id:
+             frappe.cache().set_value(f"htbench_status::{task_id}", "failed", expires_in_sec=3600)
+        execute_command(f"Error: {e}", task_id=task_id)
+        frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'failed'}, user=frappe.session.user)
+        return False
+
+import frappe
+import os
+
+def get_installed_apps(bench_name):
+    """
+    Returns list of apps cloned in the bench's apps folder
+    (i.e., apps available on the bench, not necessarily enabled in sites)
+    """
+    try:
+        # Get bench path
+        bench_doc_name = frappe.get_value("HT Bench", {"bench_name": bench_name}, "name")
+        if bench_doc_name:
+            bench_doc = frappe.get_doc("HT Bench", bench_doc_name)
+            bench_path = bench_doc.path
+        else:
+            bench_path = bench_name  # fallback
+
+        apps_path = os.path.join(bench_path, "apps")
+        if not os.path.exists(apps_path):
+            return []
+
+        # List directories in apps folder
+        apps = [
+            d for d in os.listdir(apps_path)
+            if os.path.isdir(os.path.join(apps_path, d))
+        ]
+        return apps
+
+    except Exception as e:
+        frappe.log_error(f"Failed to list apps in bench {bench_name}: {e}", "Bench App List")
+        return []
+
 
 def clone_bench(source_bench, new_bench_name, task_id=None):
     """
@@ -330,6 +411,8 @@ def clone_bench(source_bench, new_bench_name, task_id=None):
         return success
     except Exception as e:
         frappe.log_error(f"Failed to clone bench {source_bench}: {e}", "Bench Cloning")
+        if task_id:
+             frappe.cache().set_value(f"htbench_status::{task_id}", "failed", expires_in_sec=3600)
         execute_command(f"Error: {e}", task_id=task_id)
         frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'failed'}, user=frappe.session.user)
         return False

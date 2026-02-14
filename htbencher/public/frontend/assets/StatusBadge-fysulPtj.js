@@ -1,0 +1,2 @@
+import{m as s,j as o,x as g,o as c,i as p,k as i,t as u,y as l}from"./index-D6i2P4a8.js";const _={__name:"StatusBadge",props:{label:String,status:{type:String,default:"neutral"}},setup(e){const t=e,r=s(()=>({active:"green",running:"blue",success:"green",failed:"red",warning:"orange",error:"red",neutral:"gray",stopped:"gray",pending:"orange"})[t.status.toLowerCase()]||"gray");return(a,d)=>{const n=o("Badge");return c(),g(n,l({variant:r.value},a.$attrs),{default:p(()=>[i(u(e.label),1)]),_:1},16,["variant"])}}};export{_};
+//# sourceMappingURL=StatusBadge-fysulPtj.js.map
