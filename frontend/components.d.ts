@@ -35,7 +35,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     Sidebar: typeof import('./src/components/layout/Sidebar.vue')['default']
     SidebarPremium: typeof import('./src/components/layout/SidebarPremium.vue')['default']
-    SiteCard: typeof import('./src/components/sites/SiteCard.vue')['default']
     SiteSelector: typeof import('./src/components/apps/SiteSelector.vue')['default']
     SkeletonLoader: typeof import('./src/components/ui/SkeletonLoader.vue')['default']
     SSHKeyGenerator: typeof import('./src/components/github/SSHKeyGenerator.vue')['default']
