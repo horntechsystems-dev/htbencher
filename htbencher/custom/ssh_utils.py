@@ -10,7 +10,7 @@ ALLOWED_COMMANDS = ['bench', 'cd', 'ls', 'git', 'echo', 'chmod', 'rm', 'sudo', '
 ALLOWED_BENCH_SUBCOMMANDS = [
     'init', 'get-app', 'new-site', 'drop-site', 'backup', 'migrate', 
     '--site', 'setup', 'restart', 'start', 'pip', 'console', 'destroy-all-sites',
-    'remove-app', 'uninstall-app', 'install-app', 'build'
+    'remove-app', 'uninstall-app', 'install-app', 'build', 'execute'
 ]
 
 def validate_command(command):

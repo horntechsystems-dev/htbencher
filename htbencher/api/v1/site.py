@@ -100,7 +100,7 @@ def install_app(site_name, app_name):
         timeout=3600,
         bench_path=bench_doc.path,
         site_name=site_doc.site_name,
-        app_doc_name=app_name,
+        app_name=app_name,
         task_id=task_id
     )
     return {"task_id": task_id}

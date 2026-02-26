@@ -88,7 +88,7 @@ def create_bench(bench_name, server, python_version="python3.11", frappe_branch=
         frappe.log_error(str(e), "Bench Creation Failed")
         if task_id:
              frappe.cache().set_value(f"htbench_status::{task_id}", "failed", expires_in_sec=3600)
-        execute_command(f"Error: {e}", task_id=task_id) # Log error to stream
+        frappe.publish_realtime("htbench_task_log", {"task_id": task_id, "log": f"Error: {e}", "error": True}, user=frappe.session.user if frappe.session else "Administrator") # Log error to stream
         frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'failed'}, user=frappe.session.user)
         return False
 
@@ -249,7 +249,7 @@ def get_app(bench_name, app_doc_name, task_id=None):
         return success
     except Exception as e:
         frappe.log_error(f"Failed to get app {app_doc_name}: {e}", "App Operations")
-        execute_command(f"Error getting app: {e}", task_id=task_id)
+        frappe.publish_realtime("htbench_task_log", {"task_id": task_id, "log": f"Error getting app: {e}", "error": True}, user=frappe.session.user if frappe.session else "Administrator")
         return False
 
 def update_bench(bench_name, task_id=None):
@@ -282,7 +282,7 @@ def update_bench(bench_name, task_id=None):
         frappe.log_error(f"Failed to update bench {bench_name}: {e}", "Bench Update")
         if task_id:
              frappe.cache().set_value(f"htbench_status::{task_id}", "failed", expires_in_sec=3600)
-        execute_command(f"Error: {e}", task_id=task_id)
+        frappe.publish_realtime("htbench_task_log", {"task_id": task_id, "log": f"Error: {e}", "error": True}, user=frappe.session.user if frappe.session else "Administrator")
         frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'failed'}, user=frappe.session.user)
         return False
 
@@ -316,7 +316,7 @@ def build_bench(bench_name, task_id=None):
         frappe.log_error(f"Failed to build bench {bench_name}: {e}", "Bench Build")
         if task_id:
              frappe.cache().set_value(f"htbench_status::{task_id}", "failed", expires_in_sec=3600)
-        execute_command(f"Error: {e}", task_id=task_id)
+        frappe.publish_realtime("htbench_task_log", {"task_id": task_id, "log": f"Error: {e}", "error": True}, user=frappe.session.user if frappe.session else "Administrator")
         frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'failed'}, user=frappe.session.user)
         return False
 
@@ -349,7 +349,7 @@ def uninstall_app(bench_name, app_name, task_id=None):
         frappe.log_error(f"Failed to remove app {app_name} from bench {bench_name}: {e}", "Bench App Removal")
         if task_id:
              frappe.cache().set_value(f"htbench_status::{task_id}", "failed", expires_in_sec=3600)
-        execute_command(f"Error: {e}", task_id=task_id)
+        frappe.publish_realtime("htbench_task_log", {"task_id": task_id, "log": f"Error: {e}", "error": True}, user=frappe.session.user if frappe.session else "Administrator")
         frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'failed'}, user=frappe.session.user)
         return False
 
@@ -413,6 +413,6 @@ def clone_bench(source_bench, new_bench_name, task_id=None):
         frappe.log_error(f"Failed to clone bench {source_bench}: {e}", "Bench Cloning")
         if task_id:
              frappe.cache().set_value(f"htbench_status::{task_id}", "failed", expires_in_sec=3600)
-        execute_command(f"Error: {e}", task_id=task_id)
+        frappe.publish_realtime("htbench_task_log", {"task_id": task_id, "log": f"Error: {e}", "error": True}, user=frappe.session.user if frappe.session else "Administrator")
         frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'failed'}, user=frappe.session.user)
         return False
