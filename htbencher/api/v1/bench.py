@@ -111,4 +111,9 @@ def get_benches():
     """
     List all benches
     """
-    return frappe.get_all("HT Bench", fields=["name", "bench_name", "status", "path", "server"])
+    benches = frappe.get_all("HT Bench", fields=["name", "bench_name", "status", "path", "server"])
+    for bench in benches:
+        apps = bench_operations.get_installed_apps(bench.bench_name)
+        bench.total_apps = len(apps) if apps else 0
+        bench.total_sites = frappe.db.count("HT Site", filters={"bench": bench.name})
+    return benches

@@ -37,8 +37,8 @@
 
     <!-- Tab Content -->
     <div v-if="activeTab === 'overview'" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatsCard label="Sites" :value="bench.sites_count || 0" :icon="Globe" />
-        <StatsCard label="Apps" :value="bench.apps_count || 0" :icon="Package" />
+        <StatsCard label="Sites" :value="bench.total_sites || 0" :icon="Globe" />
+        <StatsCard label="Apps" :value="bench.total_apps || 0" :icon="Package" />
         <StatsCard label="Python" :value="bench.python_version || '3.11'" :icon="Terminal" />
     </div>
 

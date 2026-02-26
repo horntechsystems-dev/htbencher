@@ -33,11 +33,11 @@
         <div class="mt-6 space-y-3">
           <div class="flex items-center justify-between text-sm">
             <span class="text-gray-500 dark:text-gray-400">Sites</span>
-            <span class="font-medium text-gray-900 dark:text-white">{{ bench.sites_count || 0 }}</span>
+            <span class="font-medium text-gray-900 dark:text-white">{{ bench.total_sites || 0 }}</span>
           </div>
           <div class="flex items-center justify-between text-sm">
             <span class="text-gray-500 dark:text-gray-400">Apps</span>
-            <span class="font-medium text-gray-900 dark:text-white">{{ bench.apps_count || 0 }}</span>
+            <span class="font-medium text-gray-900 dark:text-white">{{ bench.total_apps || 0 }}</span>
           </div>
         </div>
 
