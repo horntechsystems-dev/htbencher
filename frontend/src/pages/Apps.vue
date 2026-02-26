@@ -1,11 +1,11 @@
 <template>
   <div class="space-y-6">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <h2 class="text-xl font-bold text-gray-900 dark:text-white">Applications</h2>
         <p class="text-sm text-gray-500 dark:text-gray-400">Manage installed applications across benches.</p>
       </div>
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
         <Button variant="subtle" @click="showGithubInstallModal = true">
           <Github class="mr-2 h-4 w-4" />
           GitHub

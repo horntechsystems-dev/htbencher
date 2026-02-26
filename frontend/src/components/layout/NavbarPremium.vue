@@ -1,7 +1,6 @@
 <template>
   <header
-    class="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-gray-200 bg-white/80 px-6 backdrop-blur-xl transition-all dark:border-gray-800 dark:bg-gray-900/80"
-    :class="[collapsed ? 'pl-26' : 'pl-70']"
+    class="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-gray-200 bg-white/80 px-4 sm:px-6 backdrop-blur-xl transition-all dark:border-gray-800 dark:bg-gray-900/80"
   >
     <div class="flex items-center gap-4">
       <button

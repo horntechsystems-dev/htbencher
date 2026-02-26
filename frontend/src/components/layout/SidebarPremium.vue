@@ -1,7 +1,7 @@
 <template>
   <aside
     class="fixed inset-y-0 left-0 z-50 flex flex-col border-r border-gray-200 bg-white/80 backdrop-blur-xl transition-all duration-300 dark:border-gray-800 dark:bg-gray-900/80"
-    :class="[collapsed ? 'w-20' : 'w-64']"
+    :class="[collapsed ? '-translate-x-full lg:translate-x-0 w-64 lg:w-20' : 'translate-x-0 w-64']"
   >
     <div class="flex h-16 items-center justify-center border-b border-gray-100 dark:border-gray-800">
       <div class="flex items-center gap-3 overflow-hidden px-4">
@@ -12,7 +12,7 @@
         </div>
         <span
           class="font-bold text-gray-900 transition-opacity dark:text-white"
-          :class="[collapsed ? 'opacity-0 w-0' : 'opacity-100']"
+          :class="[collapsed ? 'opacity-100 lg:opacity-0 lg:w-0' : 'opacity-100']"
         >
           HTBencher
         </span>
@@ -42,7 +42,7 @@
         />
         <span
           class="ml-3 overflow-hidden text-nowrap transition-all duration-300"
-          :class="[collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100']"
+          :class="[collapsed ? 'w-auto opacity-100 lg:w-0 lg:opacity-0' : 'w-auto opacity-100']"
         >
           {{ item.name }}
         </span>
@@ -57,7 +57,7 @@
         <LogOut class="h-5 w-5 shrink-0" />
         <span
           class="ml-3 overflow-hidden text-nowrap transition-all duration-300"
-          :class="[collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100']"
+          :class="[collapsed ? 'w-auto opacity-100 lg:w-0 lg:opacity-0' : 'w-auto opacity-100']"
         >
           Sign out
         </span>

@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-6">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <h2 class="text-xl font-bold text-gray-900 dark:text-white">Benches</h2>
         <p class="text-sm text-gray-500 dark:text-gray-400">Manage your Frappe Bench environments.</p>

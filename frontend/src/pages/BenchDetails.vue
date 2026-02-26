@@ -17,12 +17,12 @@
 
     <!-- Tabs -->
     <div class="border-b border-gray-100 dark:border-gray-800">
-        <nav class="flex gap-8">
+        <nav class="flex gap-8 overflow-x-auto">
             <button 
                 v-for="tab in tabs" 
                 :key="tab.id"
                 @click="activeTab = tab.id"
-                class="pb-4 text-sm font-medium transition-all relative"
+                class="pb-4 text-sm font-medium transition-all relative whitespace-nowrap"
                 :class="[
                     activeTab === tab.id 
                     ? 'text-gray-900 dark:text-white' 
@@ -43,7 +43,7 @@
     </div>
 
     <div v-else-if="activeTab === 'apps'" class="space-y-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h3 class="text-lg font-bold text-gray-900 dark:text-white">Installed Apps</h3>
             <GradientButton @click="showInstallWizard = true">
                 <Plus class="mr-2 h-4 w-4" />
@@ -60,19 +60,21 @@
             <p class="text-sm text-gray-500 mt-1">This bench doesn't have any apps yet.</p>
         </div>
         <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <GlassCard v-for="app in benchApps" :key="app" class="flex items-center justify-between p-4">
-                <div class="flex items-center gap-4">
-                    <div class="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center dark:bg-gray-800">
-                        <Package class="h-5 w-5 text-gray-500" />
+            <GlassCard v-for="app in benchApps" :key="app">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="h-10 w-10 flex-shrink-0 rounded-lg bg-gray-100 flex items-center justify-center dark:bg-gray-800">
+                            <Package class="h-5 w-5 text-gray-500" />
+                        </div>
+                        <div>
+                            <div class="font-bold text-gray-900 dark:text-white">{{ app }}</div>
+                            <div class="text-xs text-gray-500">Installed</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="font-bold text-gray-900 dark:text-white">{{ app }}</div>
-                        <div class="text-xs text-gray-500">Installed</div>
-                    </div>
+                    <Button variant="subtle" class="flex-shrink-0 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" @click="handleUninstall(app)">
+                        Uninstall
+                    </Button>
                 </div>
-                <Button variant="subtle" class="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" @click="handleUninstall(app)">
-                    Uninstall
-                </Button>
             </GlassCard>
         </div>
     </div>
