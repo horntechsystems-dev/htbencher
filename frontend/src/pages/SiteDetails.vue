@@ -46,16 +46,15 @@
     </div>
 
     <div v-else-if="activeTab === 'apps'" class="space-y-6">
-        <div class="flex items-center justify-between">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Site Apps</h3>
-            <div class="flex gap-2">
-                <Button variant="subtle" @click="showBenchInstallModal = true">
-                    <Package class="mr-2 h-4 w-4" />
-                    Install from Bench
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white shrink-0">Site Apps</h3>
+            <div class="flex flex-col sm:flex-row flex-wrap gap-2 w-full sm:w-auto">
+                <Button variant="subtle" class="w-full sm:w-auto flex items-center justify-center" @click="showBenchInstallModal = true">
+                    <span class="whitespace-nowrap">Install from Bench</span>
                 </Button>
-                <GradientButton @click="showInstallWizard = true">
+                <GradientButton class="w-full sm:w-auto flex items-center justify-center" @click="showInstallWizard = true">
                     <Plus class="mr-2 h-4 w-4" />
-                    Install from GitHub
+                    <span class="whitespace-nowrap">Install from GitHub</span>
                 </GradientButton>
             </div>
         </div>
@@ -69,18 +68,20 @@
             <p class="text-sm text-gray-500 mt-1">This site doesn't have any apps installed yet.</p>
         </div>
         <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <GlassCard v-for="app in siteApps" :key="app" class="flex items-center justify-between p-4">
-                <div class="flex items-center gap-3">
-                    <div class="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center dark:bg-gray-800">
-                        <Package class="h-4 w-4 text-gray-500" />
+            <GlassCard v-for="app in siteApps" :key="app">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 -m-2">
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div class="h-8 w-8 flex-shrink-0 rounded-lg bg-gray-100 flex items-center justify-center dark:bg-gray-800">
+                            <Package class="h-4 w-4 text-gray-500" />
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-bold text-gray-900 dark:text-white truncate">{{ app }}</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="font-bold text-gray-900 dark:text-white">{{ app }}</div>
-                    </div>
+                    <Button variant="subtle" class="text-red-500 text-xs px-2 py-1 flex-shrink-0 w-full sm:w-auto flex items-center justify-center" @click="handleUninstall(app)">
+                        Uninstall
+                    </Button>
                 </div>
-                <Button variant="subtle" class="text-red-500 text-xs px-2 py-1" @click="handleUninstall(app)">
-                    Uninstall
-                </Button>
             </GlassCard>
         </div>
     </div>

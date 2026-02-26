@@ -44,10 +44,10 @@
 
     <div v-else-if="activeTab === 'apps'" class="space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Installed Apps</h3>
-            <GradientButton @click="showInstallWizard = true">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white shrink-0">Installed Apps</h3>
+            <GradientButton class="flex items-center justify-center w-full sm:w-auto" @click="showInstallWizard = true">
                 <Plus class="mr-2 h-4 w-4" />
-                Install App
+                <span class="whitespace-nowrap">Install App</span>
             </GradientButton>
         </div>
 
@@ -61,17 +61,17 @@
         </div>
         <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <GlassCard v-for="app in benchApps" :key="app">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div class="flex items-center gap-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 -m-2">
+                    <div class="flex items-center gap-4 overflow-hidden">
                         <div class="h-10 w-10 flex-shrink-0 rounded-lg bg-gray-100 flex items-center justify-center dark:bg-gray-800">
                             <Package class="h-5 w-5 text-gray-500" />
                         </div>
-                        <div>
-                            <div class="font-bold text-gray-900 dark:text-white">{{ app }}</div>
+                        <div class="min-w-0">
+                            <div class="font-bold text-gray-900 dark:text-white truncate">{{ app }}</div>
                             <div class="text-xs text-gray-500">Installed</div>
                         </div>
                     </div>
-                    <Button variant="subtle" class="flex-shrink-0 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" @click="handleUninstall(app)">
+                    <Button variant="subtle" class="w-full sm:w-auto flex items-center justify-center flex-shrink-0 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" @click="handleUninstall(app)">
                         Uninstall
                     </Button>
                 </div>

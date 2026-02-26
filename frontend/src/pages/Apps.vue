@@ -6,13 +6,13 @@
         <p class="text-sm text-gray-500 dark:text-gray-400">Manage installed applications across benches.</p>
       </div>
       <div class="flex flex-wrap gap-2">
-        <Button variant="subtle" @click="showGithubInstallModal = true">
+        <Button variant="subtle" class="flex items-center justify-center" @click="showGithubInstallModal = true">
           <Github class="mr-2 h-4 w-4" />
-          GitHub
+          <span class="whitespace-nowrap">GitHub</span>
         </Button>
-        <GradientButton @click="showInstallModal = true">
+        <GradientButton class="flex items-center justify-center" @click="showInstallModal = true">
           <Download class="mr-2 h-4 w-4" />
-          Install App
+          <span class="whitespace-nowrap">Install App</span>
         </GradientButton>
       </div>
     </div>

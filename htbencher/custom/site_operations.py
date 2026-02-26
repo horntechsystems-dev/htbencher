@@ -158,8 +158,8 @@ def uninstall_app_from_site(bench_path, site_name, app_name, task_id=None):
     Uninstall app from site
     """
     try:
-        # bench --site site_name uninstall-app app_name
-        cmd = ["bench", "--site", site_name, "uninstall-app", app_name]
+        # bench --site site_name uninstall-app app_name --yes
+        cmd = ["bench", "--site", site_name, "uninstall-app", app_name, "--yes"]
         
         bench_doc = get_bench_doc_from_path(bench_path)
         success, output = execute_command(cmd, bench_doc=bench_doc, cwd=bench_path, task_id=task_id)

@@ -325,7 +325,7 @@ def uninstall_app(bench_name, app_name, task_id=None):
     Remove an app from a bench
     """
     try:
-        cmd = ["bench", "remove-app", app_name]
+        cmd = ["bench", "remove-app", app_name, "--force"]
         
         bench_doc = frappe.db.get_value("HT Bench", {"bench_name": bench_name}, "name")
         if bench_doc:

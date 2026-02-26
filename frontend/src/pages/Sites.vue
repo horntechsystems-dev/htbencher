@@ -49,18 +49,18 @@
         <div class="mt-6 flex gap-2">
           <Button
             variant="subtle"
-            class="flex-1"
+            class="flex-1 flex items-center justify-center"
             :loading="state.backingUp === site.bench"
             @click="handleBackup(site)"
           >
-            Backup
+            <span class="whitespace-nowrap">Backup</span>
           </Button>
           <Button
             variant="outline"
-            class="flex-1 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+            class="flex-1 flex items-center justify-center text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
             @click="handleDelete(site)"
           >
-            Delete
+            <span class="whitespace-nowrap">Delete</span>
           </Button>
         </div>
       </GlassCard>

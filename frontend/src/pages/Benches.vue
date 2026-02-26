@@ -44,18 +44,18 @@
         <div class="mt-6 flex gap-2">
           <Button
             variant="subtle"
-            class="flex-1"
+            class="flex-1 flex items-center justify-center"
             @click="handleViewLogs(bench)"
           >
-            Logs
+            <span class="whitespace-nowrap">Logs</span>
           </Button>
           <Button
             variant="solid"
-            class="flex-1 bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+            class="flex-1 flex items-center justify-center bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
             :loading="state.restarting === bench.name"
             @click="handleRestart(bench)"
           >
-            Restart
+            <span class="whitespace-nowrap">Restart</span>
           </Button>
         </div>
       </GlassCard>
