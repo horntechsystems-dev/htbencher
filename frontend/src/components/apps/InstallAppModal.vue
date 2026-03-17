@@ -78,7 +78,7 @@ import GradientButton from "@/components/ui/GradientButton.vue"
 import ProcessLog from "@/components/ui/ProcessLog.vue"
 import StatusIndicator from "@/components/ui/StatusIndicator.vue"
 import { useBench } from "@/composables/useBench"
-import { benches, tasks } from "@/services/htbencherApi"
+import { benches } from "@/services/htbencherApi"
 import { useSocket } from "@/socket"
 import { createResource } from "frappe-ui"
 import { computed, reactive, ref, onBeforeUnmount } from "vue"
@@ -99,7 +99,6 @@ const statusMessage = ref("Initializing...")
 const logs = ref([])
 const taskId = ref(null)
 const socket = useSocket()
-const isPolling = ref(false)
 
 const form = reactive({
 	app_doc_name: "",
@@ -139,7 +138,6 @@ async function handleInstall() {
             statusMessage.value = "Task queued..."
             
             setupSocketListeners(res.task_id)
-            startPolling(res.task_id)
         }
 	} catch (e) {
         console.error(e)
@@ -150,51 +148,6 @@ async function handleInstall() {
     }
 }
 
-async function startPolling(id) {
-    isPolling.value = true
-    poll(id)
-}
-
-async function poll(id) {
-    if (!isPolling.value || !id) return
-
-    try {
-        const res = await tasks.getStatus(id)
-
-        if (res && res.logs) {
-            const newLogs = res.logs.filter(l => 
-                !logs.value.some(existing => existing.message === l.log && existing.time.includes(new Date(l.timestamp).toLocaleTimeString().split(' ')[0]))
-            )
-            
-            if (newLogs.length > 0) {
-                newLogs.forEach(l => {
-                    logs.value.push({
-                        time: new Date(l.timestamp).toLocaleTimeString(),
-                        message: l.log,
-                        error: l.error
-                    })
-                })
-            }
-        }
-
-        if (res && (res.status === 'success' || res.status === 'failed')) {
-            isComplete.value = true
-            isProcessing.value = false
-            loading.value = false
-            hasError.value = res.status === 'failed'
-            statusMessage.value = res.status === 'success' ? 'Completed' : 'Failed'
-            if (res.status === 'success') progress.value = 100
-            isPolling.value = false
-            return
-        }
-    } catch (e) {
-        // Silent
-    }
-
-    if (isPolling.value) {
-        setTimeout(() => poll(id), 2000)
-    }
-}
 
 function setupSocketListeners(id) {
     if (!socket || !socket.connected) return
@@ -226,14 +179,10 @@ function setupSocketListeners(id) {
             hasError.value = data.status !== 'success'
             statusMessage.value = data.status === 'success' ? 'Completed' : 'Failed'
             if (data.status === 'success') progress.value = 100
-            isPolling.value = false
         }
     })
 }
 
-onBeforeUnmount(() => {
-    isPolling.value = false
-})
 
 function handleClose() {
     if (isProcessing.value && !isComplete.value) {

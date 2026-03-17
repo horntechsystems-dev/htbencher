@@ -142,7 +142,6 @@ import { useAppInstaller } from "@/composables/useAppInstaller"
 import { useBench } from "@/composables/useBench"
 import { useSite } from "@/composables/useSite"
 import { useSocket } from "@/socket"
-import { tasks } from "@/services/htbencherApi"
 
 const props = defineProps({
   modelValue: Boolean,
@@ -186,7 +185,6 @@ const progress = ref(0)
 const statusMessage = ref("Initializing...")
 const processLogs = ref([])
 const socket = useSocket()
-const isPolling = ref(false)
 
 const canProceed = computed(() => {
   if (step.value === 1) return state.selectedBench && state.selectedAccount
@@ -241,7 +239,6 @@ async function handleInstall() {
     if (res.task_id) {
         isProcessing.value = true
         setupSocketListeners(res.task_id)
-        startPolling(res.task_id)
     }
   } catch (e) {
     hasError.value = true
@@ -249,35 +246,6 @@ async function handleInstall() {
   }
 }
 
-// Logic duplicated from InstallAppModal.vue for consistency
-async function startPolling(id) {
-    isPolling.value = true
-    poll(id)
-}
-
-async function poll(id) {
-    if (!isPolling.value || !id) return
-    try {
-        const res = await tasks.getStatus(id)
-        if (res && res.logs) {
-            processLogs.value = res.logs.map(l => ({
-                time: new Date(l.timestamp).toLocaleTimeString(),
-                message: l.log,
-                error: l.error
-            }))
-        }
-        if (res && (res.status === 'success' || res.status === 'failed')) {
-            isComplete.value = true
-            isProcessing.value = false
-            hasError.value = res.status === 'failed'
-            statusMessage.value = res.status === 'success' ? 'Completed' : 'Failed'
-            if (res.status === 'success') progress.value = 100
-            isPolling.value = false
-            return
-        }
-    } catch (e) {}
-    if (isPolling.value) setTimeout(() => poll(id), 2000)
-}
 
 function setupSocketListeners(id) {
     if (!socket || !socket.connected) return

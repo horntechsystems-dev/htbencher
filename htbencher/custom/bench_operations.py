@@ -77,7 +77,7 @@ def create_bench(bench_name, server, python_version="python3.11", frappe_branch=
                 app_name = app_name.strip()
                 progress = 60 + int((idx / total_apps) * 35)
                 update_progress(progress, f"Installing App: {app_name} ({idx+1}/{total_apps})...")
-                get_app(bench_name, app_name, task_id=task_id)
+                get_app(bench_name, app_name, task_id=task_id, update_task=False)
 
         update_progress(100, "Bench Creation Successful!")
         if task_id:
@@ -158,13 +158,16 @@ def get_system_pythons(server=None):
         
     return pythons
 
-def get_app(bench_name, app_doc_name, task_id=None):
+def get_app(bench_name, app_doc_name, task_id=None, update_task=True):
     """
     Get app from HT App definition
     """
     import os
     import shlex
     
+    if update_task and task_id:
+        frappe.cache().set_value(f"htbench_status::{task_id}", "running", expires_in_sec=3600)
+        
     try:
         app_doc = frappe.get_doc("HT App", app_doc_name)
         repo_url = app_doc.repo_url
@@ -246,10 +249,19 @@ def get_app(bench_name, app_doc_name, task_id=None):
                 env={"FRAPPE_DOCKER_BUILD": "1"}
             )
         
+        if update_task and task_id:
+             frappe.cache().set_value(f"htbench_status::{task_id}", "success" if success else "failed", expires_in_sec=3600)
+             frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'success' if success else 'failed'}, user=frappe.session.user if frappe.session else "Administrator")
+             
         return success
     except Exception as e:
         frappe.log_error(f"Failed to get app {app_doc_name}: {e}", "App Operations")
         frappe.publish_realtime("htbench_task_log", {"task_id": task_id, "log": f"Error getting app: {e}", "error": True}, user=frappe.session.user if frappe.session else "Administrator")
+        
+        if update_task and task_id:
+             frappe.cache().set_value(f"htbench_status::{task_id}", "failed", expires_in_sec=3600)
+             frappe.publish_realtime('htbench_task_complete', {'task_id': task_id, 'status': 'failed'}, user=frappe.session.user if frappe.session else "Administrator")
+             
         return False
 
 def update_bench(bench_name, task_id=None):

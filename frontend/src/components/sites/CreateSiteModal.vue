@@ -105,7 +105,7 @@ import GlassSelect from "@/components/ui/GlassSelect.vue"
 import GradientButton from "@/components/ui/GradientButton.vue"
 import ProcessLog from "@/components/ui/ProcessLog.vue"
 import StatusIndicator from "@/components/ui/StatusIndicator.vue"
-import { sites, tasks } from "@/services/htbencherApi"
+import { sites } from "@/services/htbencherApi"
 import { useSocket } from "@/socket"
 import { createResource } from "frappe-ui"
 import { computed, onUnmounted, reactive, ref } from "vue"
@@ -147,8 +147,6 @@ const benchOptions = computed(() =>
     benchesResource.data?.map(b => ({ label: b.name, value: b.name })) || []
 )
 
-const isPolling = ref(false)
-
 // Logic
 async function handleCreate() {
     if(!form.bench_name || !form.site_name || !form.admin_password || !form.db_password) return
@@ -176,11 +174,8 @@ async function handleCreate() {
             isProcessing.value = true
             statusMessage.value = "Task queued..."
             
-            // Try Sockets (Secondary)
+            // Use Sockets
             setupSocketListeners(res.task_id)
-            
-            // Start Polling (Primary Fallback)
-            startPolling(res.task_id)
         }
     } catch (e) {
         console.error(e)
@@ -188,51 +183,6 @@ async function handleCreate() {
     }
 }
 
-async function startPolling(id) {
-    isPolling.value = true
-    poll(id)
-}
-
-async function poll(id) {
-    if (!isPolling.value || !id) return
-
-    try {
-        const res = await tasks.getStatus(id)
-
-        if (res && res.logs) {
-            const newLogs = res.logs.filter(l => 
-                !logs.value.some(existing => existing.message === l.log && existing.time.includes(new Date(l.timestamp).toLocaleTimeString().split(' ')[0]))
-            )
-            
-            if (newLogs.length > 0) {
-                newLogs.forEach(l => {
-                    logs.value.push({
-                        time: new Date(l.timestamp).toLocaleTimeString(),
-                        message: l.log,
-                        error: l.error
-                    })
-                })
-            }
-        }
-
-        if (res && (res.status === 'success' || res.status === 'failed')) {
-            isComplete.value = true
-            isProcessing.value = false
-            loading.value = false
-            hasError.value = res.status === 'failed'
-            statusMessage.value = res.status === 'success' ? 'Completed' : 'Failed'
-            if (res.status === 'success') progress.value = 100
-            isPolling.value = false
-            return
-        }
-    } catch (e) {
-        // Silent fail or minimal log
-    }
-
-    if (isPolling.value) {
-        setTimeout(() => poll(id), 2000)
-    }
-}
 
 function setupSocketListeners(id) {
     if (!socket || !socket.connected) return
@@ -264,7 +214,6 @@ function setupSocketListeners(id) {
             hasError.value = data.status !== 'success'
             statusMessage.value = data.status === 'success' ? 'Completed' : 'Failed'
             if (data.status === 'success') progress.value = 100
-            isPolling.value = false
         }
     })
 }
