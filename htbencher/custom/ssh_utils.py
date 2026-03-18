@@ -6,7 +6,7 @@ from fabric import Connection
 import shlex
 import tempfile
 
-ALLOWED_COMMANDS = ['bench', 'cd', 'ls', 'git', 'echo', 'chmod', 'rm', 'sudo', 'service', 'systemctl', 'mktemp', 'python3', 'python', 'cat']
+ALLOWED_COMMANDS = ['bench', 'cd', 'ls', 'git', 'echo', 'chmod', 'rm', 'sudo', 'service', 'systemctl', 'mktemp', 'python3', 'python', 'cat', 'apt', 'apt-get', 'supervisorctl', 'certbot', 'chown', 'tee', 'mkdir', 'add-apt-repository', 'curl', 'bash', 'nvm', 'npm', 'node', 'yarn', 'wget']
 ALLOWED_BENCH_SUBCOMMANDS = [
     'init', 'get-app', 'new-site', 'drop-site', 'backup', 'migrate', 
     '--site', 'setup', 'restart', 'start', 'pip', 'console', 'destroy-all-sites',

@@ -8,6 +8,7 @@
         "server",
         "path",
         "python_version",
+        "node_version",
         "frappe_branch",
         "status",
         "is_remote",
@@ -45,6 +46,12 @@
             "fieldname": "python_version",
             "fieldtype": "Data",
             "label": "Python Version"
+        },
+        {
+            "default": "18",
+            "fieldname": "node_version",
+            "fieldtype": "Data",
+            "label": "Node Version"
         },
         {
             "default": "version-15",

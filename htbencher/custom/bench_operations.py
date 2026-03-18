@@ -4,7 +4,35 @@ import os
 import glob
 from htbencher.custom.ssh_utils import execute_command
 
-def create_bench(bench_name, server, python_version="python3.11", frappe_branch="version-15", apps=None, task_id=None):
+def install_dependencies(python_version, node_version="18", bench_doc=None, cwd=None, task_id=None, user=None):
+    if task_id:
+        frappe.publish_realtime('htbench_task_progress', {
+            'task_id': task_id,
+            'percentage': 15,
+            'status': f"Checking/Installing dependencies (Python {python_version}, Node {node_version})..."
+        }, user=user)
+
+    # 1. Update and install base requirements
+    execute_command(["sudo", "apt-get", "update", "-y"], bench_doc=bench_doc, cwd=cwd, task_id=task_id)
+    execute_command(["sudo", "apt-get", "install", "-y", "software-properties-common", "curl", "wget"], bench_doc=bench_doc, cwd=cwd, task_id=task_id)
+    execute_command(["sudo", "add-apt-repository", "-y", "ppa:deadsnakes/ppa"], bench_doc=bench_doc, cwd=cwd, task_id=task_id)
+    execute_command(["sudo", "apt-get", "update", "-y"], bench_doc=bench_doc, cwd=cwd, task_id=task_id)
+
+    # 2. Install requested python version and virtualenv dependencies
+    py_deps = [python_version, f"{python_version}-venv", f"{python_version}-dev"]
+    execute_command(["sudo", "apt-get", "install", "-y"] + py_deps, bench_doc=bench_doc, cwd=cwd, task_id=task_id)
+
+    # 3. Install NVM
+    nvm_cmd = "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash"
+    execute_command(nvm_cmd, bench_doc=bench_doc, cwd=cwd, task_id=task_id)
+
+    # 4. Install Node via NVM
+    node_cmd = f'bash -c "export NVM_DIR=\\"$HOME/.nvm\\" && [ -s \\"$NVM_DIR/nvm.sh\\" ] && \\. \\"$NVM_DIR/nvm.sh\\" && nvm install {node_version} && nvm use {node_version} && npm install -g yarn"'
+    execute_command(node_cmd, bench_doc=bench_doc, cwd=cwd, task_id=task_id)
+
+    return True
+
+def create_bench(bench_name, server, python_version="python3.11", node_version="18", frappe_branch="version-15", apps=None, task_id=None):
     """
     Create a new bench with specified configuration
     """
@@ -33,11 +61,15 @@ def create_bench(bench_name, server, python_version="python3.11", frappe_branch=
             "server": server,
             "path": absolute_path, # Use absolute path
             "python_version": python_version,
+            "node_version": node_version,
             "frappe_branch": frappe_branch,
             "status": "Inactive" # Mark active after success
         })
         bench_doc.insert(ignore_permissions=True)
         frappe.db.commit()
+
+        # Install dependencies before init (python version, nvm, node, yarn)
+        install_dependencies(python_version, node_version=node_version, bench_doc=bench_doc, cwd=parent_dir, task_id=task_id, user=frappe.session.user if frappe.session else "Administrator")
 
         cmd = [
             "bench", "init", bench_name,
@@ -117,7 +149,6 @@ def get_system_pythons(server=None):
         
         # We use execute_command which handles local/remote switch based on server
         success, output = execute_command(cmd, bench_doc=bench_doc)
-        print(output,"___"*100)
         if success:
             frappe.log_error(f"Python detection output: {output}", "Bench Operations Debug")
             lines = output.strip().split('\n')
@@ -146,17 +177,54 @@ def get_system_pythons(server=None):
                 if name[-1].isdigit():
                     pythons.append(name)
 
+        # Add common versions if not present
+        common_pythons = ['python3.10', 'python3.11', 'python3.12', 'python3.13']
+        for cp in common_pythons:
+            if cp not in pythons:
+                pythons.append(cp)
+
+        # Add historical versions from existing benches
+        historical = frappe.get_all("HT Bench", fields=["python_version"], distinct=True)
+        for h in historical:
+            v = h.python_version
+            if v and v not in pythons:
+                pythons.append(v)
+
         pythons = sorted(list(set(pythons)))
         
         # Add 'python3' as generic option if not present
         if 'python3' not in pythons:
             pythons.insert(0, 'python3')
             
+        # Add 'Other...' for manual entry
+        pythons.append('Other...')
+            
     except Exception as e:
         frappe.log_error(f"Error fetching pythons: {e}\n{frappe.get_traceback()}", "Bench Operations")
         pythons = ['python3', 'python3.10', 'python3.11']
         
     return pythons
+
+def get_system_nodes(server=None):
+    """
+    Return a list of common Node mapping or valid inputs for nvm install.
+    Includes historical versions from existing benches.
+    """
+    nodes = ["14", "16", "18", "20", "22", "23", "--lts", "--latest"]
+    
+    # Add historical
+    try:
+        historical = frappe.get_all("HT Bench", fields=["node_version"], distinct=True)
+        for h in historical:
+            v = h.node_version
+            if v and v not in nodes:
+                nodes.append(v)
+    except Exception:
+        pass
+
+    nodes = sorted(list(set(nodes)), key=lambda x: (not x.isdigit(), int(x) if x.isdigit() else x))
+    nodes.append('Other...')
+    return nodes
 
 def get_app(bench_name, app_doc_name, task_id=None, update_task=True):
     """
@@ -411,7 +479,9 @@ def clone_bench(source_bench, new_bench_name, task_id=None):
         
         success = create_bench(
             bench_name=new_bench_name,
+            server=source_doc.server,
             python_version=source_doc.python_version,
+            node_version=source_doc.node_version if hasattr(source_doc, 'node_version') else "18",
             frappe_branch=source_doc.frappe_branch,
             apps=apps_str,
             task_id=task_id

@@ -34,6 +34,34 @@
             />
             
             <GlassInput
+            v-if="form.python_version === 'Other...'"
+            v-model="form.custom_python"
+            label="Specify Python Version"
+            placeholder="e.g. python3.13"
+            required
+            hint="Ensure this version is available via apt or already installed."
+            />
+            
+            <GlassSelect
+            v-if="form.server && nodeOptions.length"
+            v-model="form.node_version"
+            label="Node Version"
+            :options="nodeOptions"
+            required
+            />
+            
+            <GlassInput
+            v-if="form.node_version === 'Other...'"
+            v-model="form.custom_node"
+            label="Specify Node Version"
+            placeholder="e.g. 20"
+            required
+            hint="Enter any version string valid for 'nvm install'."
+            />
+            
+
+            
+            <GlassInput
             v-if="form.server"
             v-model="form.frappe_branch"
             label="Frappe Branch"
@@ -126,7 +154,10 @@ const form = reactive({
 	bench_name: "",
 	server: "",
     python_version: "",
-    frappe_branch: "version-15"
+    node_version: "18",
+    frappe_branch: "version-15",
+    custom_python: "",
+    custom_node: ""
 })
 
 // Resources
@@ -142,6 +173,12 @@ const pythonsResource = createResource({
     auto: false
 })
 
+const nodesResource = createResource({
+    url: 'htbencher.api.v1.bench.get_available_nodes',
+    params: {},
+    auto: false
+})
+
 // Computeds
 const serverOptions = computed(() => 
     serversResource.data?.map(s => ({ label: s.name, value: s.name })) || []
@@ -149,6 +186,10 @@ const serverOptions = computed(() =>
 
 const pythonOptions = computed(() =>
     pythonsResource.data?.map(v => ({ label: v, value: v })) || []
+)
+
+const nodeOptions = computed(() =>
+    nodesResource.data?.map(v => ({ label: v, value: v })) || []
 )
 
 // Watchers
@@ -164,9 +205,21 @@ watch(() => form.server, (newVal) => {
                  form.python_version = data[0]
              }
         })
+
+        nodesResource.params = { server: newVal }
+        nodesResource.reload().then(() => {
+             const data = nodesResource.data
+             if (data && data.includes('18')) {
+                 form.node_version = '18'
+             } else if (data && data.length > 0) {
+                 form.node_version = data[0]
+             }
+        })
     } else {
         pythonsResource.data = []
         form.python_version = ""
+        nodesResource.data = []
+        form.node_version = "18"
     }
 })
 
@@ -174,7 +227,7 @@ watch(() => form.server, (newVal) => {
 
 // Logic
 async function handleCreate() {
-    if(!form.bench_name || !form.server || !form.python_version) return
+    if(!form.bench_name || !form.server || !form.python_version || !form.node_version) return
 
 	loading.value = true
     // Reset state
@@ -186,7 +239,15 @@ async function handleCreate() {
     statusMessage.value = "Starting..."
 
 	try {
-        const res = await benches.create(form)
+        const payload = { ...form }
+        if (payload.python_version === 'Other...') {
+            payload.python_version = payload.custom_python
+        }
+        if (payload.node_version === 'Other...') {
+            payload.node_version = payload.custom_node
+        }
+        
+        const res = await benches.create(payload)
         if (res.task_id) {
             taskId.value = res.task_id
             isProcessing.value = true

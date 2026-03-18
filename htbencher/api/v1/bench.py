@@ -3,7 +3,7 @@ import frappe
 from htbencher.custom import bench_operations
 
 @frappe.whitelist()
-def create_bench(bench_name, server, python_version="python3.11", frappe_branch="version-15", apps=None):
+def create_bench(bench_name, server, python_version="python3.11", node_version="18", frappe_branch="version-15", apps=None):
     if not frappe.has_permission("HT Bench", "create"):
         frappe.throw("Not permitted", frappe.PermissionError)
         
@@ -17,6 +17,7 @@ def create_bench(bench_name, server, python_version="python3.11", frappe_branch=
         bench_name=bench_name, 
         server=server,
         python_version=python_version, 
+        node_version=node_version,
         frappe_branch=frappe_branch, 
         apps=apps,
         task_id=task_id
@@ -63,6 +64,10 @@ def build_bench(bench_name):
 @frappe.whitelist()
 def get_available_pythons(server=None):
     return bench_operations.get_system_pythons(server=server)
+
+@frappe.whitelist()
+def get_available_nodes(server=None):
+    return bench_operations.get_system_nodes(server=server)
 
 @frappe.whitelist()
 def get_app(bench_name, app_doc_name):
