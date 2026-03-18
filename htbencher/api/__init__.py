@@ -1,6 +1,9 @@
 import frappe
 from frappe import _
 from frappe.auth import LoginManager
+from frappe.utils.background_jobs import get_queue, get_workers
+from frappe.utils.scheduler import is_scheduler_inactive
+import psutil
 
 @frappe.whitelist(allow_guest=True)
 def login(usr, pwd):
@@ -28,12 +31,14 @@ def get_system_status():
         "total_benches": frappe.db.count("HT Bench"),
         "total_sites": frappe.db.count("HT Site"),
         "total_apps": frappe.db.count("HT App"),
-        "server_load": 0.5, # Mock for now
-        "workers_status": "Active",
-        "scheduler_status": "Active",
+        "server_load": psutil.cpu_percent(), # Replaced mock with real CPU load
+        "workers_status": "Active" if len(get_workers()) > 0 else "Inactive",
+        "scheduler_status": "Inactive" if is_scheduler_inactive() else "Active",
         "redis_status": "Active",
         "queues": {
-            "default": {"count": frappe.db.count("DocType")} # Mock for visualization
+            "default": {"count": get_queue("default").count},
+            "short": {"count": get_queue("short").count},
+            "long": {"count": get_queue("long").count}
         }
     }
 
